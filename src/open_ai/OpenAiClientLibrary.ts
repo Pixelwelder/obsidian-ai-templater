@@ -98,10 +98,17 @@ export default class OpenAiApi {
 		}
 
 		try {
-			const completion = await openai.chat.completions.create({
-				messages: messages,
+			// const completion = await openai.chat.completions.create({
+			// 	messages: messages,
+			// 	model: model ?? this.plugin.settings.defaultModel,
+			// 	max_tokens: maxTokens ?? this.plugin.settings.defaultMaxNumTokens,
+			// });
+
+			const completion = await openai.responses.create({
+				input: promptOrMessages as string,
 				model: model ?? this.plugin.settings.defaultModel,
-				max_tokens: maxTokens ?? this.plugin.settings.defaultMaxNumTokens,
+				tools: [ { type: "web_search_preview" } ],
+				tool_choice: { type: "web_search_preview" },
 			});
 
 			if (this.plugin.settings.debugToConsole) {
@@ -126,15 +133,15 @@ export default class OpenAiApi {
 				if (usage) {
 					const displayMessage =
 						`${this.plugin.APP_ABBREVIARTION}:\n` +
-						`Tokens: ${usage.prompt_tokens.toString()}/${usage.completion_tokens.toString()}/${usage.total_tokens.toString()}\n` +
+						`Tokens: ${usage.input_tokens.toString()}/${usage.output_tokens.toString()}/${usage.total_tokens.toString()}\n` +
 						`Character count: ${characterCount.toString()}`;
 					new Notice(displayMessage, 8000);
 				}
 			}
 
-			return completion.choices[0].message.content
-				? completion.choices[0].message.content
-				: "";
+			return completion.output_text;
+				// ? completion.choices[0].message.content
+				// : "";
 		} catch (error) {
 			new Notice(
 				`${this.plugin.APP_ABBREVIARTION} Error: ${String(error)}`,
