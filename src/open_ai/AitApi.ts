@@ -15,6 +15,7 @@ declare global {
 			chat: (
 				promptOrMessages: string | ChatCompletionMessageParam[],
 			) => Promise<string>;
+			createClient: () => OpenAI;
 			defaultClientSettings: Settings;
 			helpers: {
 				ActivityIndicator: typeof ActivityIndicator;
@@ -32,6 +33,7 @@ export const setupAitApi = (plugin: AitPlugin) => {
 	window.ait = {
 		availableModels: plugin.openAiApi.availableModels,
 		chat: plugin.openAiApi.chat,
+		createClient: plugin.openAiApi.createClient,
 		defaultClientSettings: plugin.settings,
 		helpers: {
 			ActivityIndicator: ActivityIndicator,

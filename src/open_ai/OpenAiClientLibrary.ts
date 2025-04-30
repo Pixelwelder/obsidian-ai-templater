@@ -7,6 +7,8 @@ import type { ClientOptions } from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources";
 import type AitPlugin from "../main";
 
+const version = "0.0.1";
+
 export default class OpenAiApi {
 	private plugin: AitPlugin;
 
@@ -38,6 +40,7 @@ export default class OpenAiApi {
 		apiKey?: string | null,
 		organization?: string | null,
 	): Promise<string> => {
+		this.plugin.log(`${this.plugin.APP_ABBREVIARTION}: v${version}`);
 		const openai = new OpenAI({
 			apiKey: apiKey ?? this.plugin.settings.defaultApiKey,
 			dangerouslyAllowBrowser: true,
@@ -109,6 +112,7 @@ export default class OpenAiApi {
 				model: model ?? this.plugin.settings.defaultModel,
 				tools: [ { type: "web_search_preview" } ],
 				tool_choice: { type: "web_search_preview" },
+				
 			});
 
 			if (this.plugin.settings.debugToConsole) {
@@ -119,7 +123,7 @@ export default class OpenAiApi {
 					outgoingCharacterCountMax: maxCharacters,
 					outgoingCharacerCountActual: characterCount,
 				};
-				this.plugin.log("chat", logMessage);
+				this.plugin.log(`chat v${version}`, logMessage);
 			}
 
 			if (
@@ -149,6 +153,49 @@ export default class OpenAiApi {
 			);
 			return "";
 		}
+	};
+
+	/**
+	 * This function returns a reference to the created OpenAI object,
+	 * which can be used to call with the actual OpenAI API.
+	 * @param baseURL 
+	 * @param apiKey 
+	 * @param organization 
+	 * @returns 
+	 */
+	createClient = (
+		// promptOrMessages: string | ChatCompletionMessageParam[],
+		// model?: string | null,
+		// systemMessage?: string | null,
+		// maxTokens?: number,
+		// maxOutgoingCharacters?: number,
+		baseURL?: string | null,
+		apiKey?: string | null,
+		organization?: string | null,
+	): OpenAI => {
+		this.plugin.log(`${this.plugin.APP_ABBREVIARTION}: v${version}`);
+		const openai = new OpenAI({
+			apiKey: apiKey ?? this.plugin.settings.defaultApiKey,
+			dangerouslyAllowBrowser: true,
+			...(organization ? { organization } : {}),
+		} as ClientOptions);
+
+		if (baseURL) openai.baseURL = baseURL;
+		if (organization) openai.organization = organization;
+
+		if (!this.validateSettings()) {
+			const message = "Check your setting for valid API key, model and endpoint.";
+			new Notice(
+				`${this.plugin.APP_ABBREVIARTION}: ${message}`,
+				10000,
+			);
+			throw new Error(message);
+		}
+
+		if (this.plugin.settings.defaultEndpoint !== "")
+			openai.baseURL = this.plugin.settings.defaultEndpoint;
+
+		return openai;
 	};
 
 	// for the current endpoint, returns a list of available modeels

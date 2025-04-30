@@ -4,6 +4,7 @@ import { InternalModule } from "templater-obsidian/src/core/functions/internal_f
 import type { ModuleName } from "templater-obsidian/src/editor/TpDocumentation";
 import type AitPlugin from "../main";
 import ActivityIndicator from "../utils/ActivityIndicator";
+import OpenAI from 'openai';
 
 // Integration module to add custom commands to Templater
 // This file using an interface from another library, so some eslint checks need to be disabled.
@@ -23,6 +24,7 @@ export class InternalModuleAit extends InternalModule {
 			this.generate_selection_or_nearest(),
 		);
 		this.static_functions.set("chat", this.generate_run_chat());
+		this.static_functions.set("create_client", this.generate_create_client());
 	}
 
 	async create_dynamic_templates(): Promise<void> {
@@ -106,6 +108,12 @@ export class InternalModuleAit extends InternalModule {
 				spinner.remove();
 				return "";
 			}
+		};
+	}
+
+	generate_create_client(): () => OpenAI | null {
+		return () => {
+			return this.plugin?.openAiApi.createClient() ?? null;
 		};
 	}
 }
